@@ -92,6 +92,7 @@ int main(int argc, char **argv) {
     statistics.requests = stats_alloc(MAX_THREAD_RATE_S);
     thread *threads     = zcalloc(cfg.threads * sizeof(thread));
 
+    //创建lua脚本加载环境
     lua_State *L = script_create(cfg.script, url, headers);
     if (!script_resolve(L, host, service)) {
         char *msg = strerror(errno);
@@ -190,6 +191,7 @@ int main(int argc, char **argv) {
     printf("Requests/sec: %9.2Lf\n", req_per_s);
     printf("Transfer/sec: %10sB\n", format_binary(bytes_per_s));
 
+    //脚本执行完毕
     if (script_has_done(L)) {
         script_summary(L, runtime_us, complete, bytes);
         script_errors(L, &errors);
@@ -199,6 +201,7 @@ int main(int argc, char **argv) {
     return 0;
 }
 
+//线程主函数
 void *thread_main(void *arg) {
     thread *thread = arg;
 
@@ -479,6 +482,7 @@ static struct option longopts[] = {
     { NULL,          0,                 NULL,  0  }
 };
 
+//分析参数
 static int parse_args(struct config *cfg, char **url, struct http_parser_url *parts, char **headers, int argc, char **argv) {
     char **header = headers;
     int c;
@@ -543,10 +547,12 @@ static int parse_args(struct config *cfg, char **url, struct http_parser_url *pa
     return 0;
 }
 
+//打印统计头部
 static void print_stats_header() {
     printf("  Thread Stats%6s%11s%8s%12s\n", "Avg", "Stdev", "Max", "+/- Stdev");
 }
 
+//打印单位
 static void print_units(long double n, char *(*fmt)(long double), int width) {
     char *msg = fmt(n);
     int len = strlen(msg), pad = 2;
@@ -560,6 +566,7 @@ static void print_units(long double n, char *(*fmt)(long double), int width) {
     free(msg);
 }
 
+//打印统计信息
 static void print_stats(char *name, stats *stats, char *(*fmt)(long double)) {
     uint64_t max = stats->max;
     long double mean  = stats_mean(stats);
