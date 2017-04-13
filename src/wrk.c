@@ -4,6 +4,7 @@
 #include "script.h"
 #include "main.h"
 
+//配置
 static struct config {
     uint64_t connections;
     uint64_t duration;
@@ -18,11 +19,13 @@ static struct config {
     SSL_CTX *ctx;
 } cfg;
 
+//统计 延时,请求
 static struct {
     stats *latency;
     stats *requests;
 } statistics;
 
+//socket
 static struct sock sock = {
     .connect  = sock_connect,
     .close    = sock_close,
@@ -58,6 +61,7 @@ static void usage() {
            "  Time arguments may include a time unit (2s, 2m, 2h)\n");
 }
 
+//主函数
 int main(int argc, char **argv) {
     char *url, **headers = zmalloc(argc * sizeof(char *));
     struct http_parser_url parts = {};
@@ -67,6 +71,7 @@ int main(int argc, char **argv) {
         exit(1);
     }
 
+    //服务端信息
     char *schema  = copy_url_part(url, &parts, UF_SCHEMA);
     char *host    = copy_url_part(url, &parts, UF_HOST);
     char *port    = copy_url_part(url, &parts, UF_PORT);
@@ -469,6 +474,7 @@ static char *copy_url_part(char *url, struct http_parser_url *parts, enum http_p
     return part;
 }
 
+//参数 选项
 static struct option longopts[] = {
     { "connections", required_argument, NULL, 'c' },
     { "duration",    required_argument, NULL, 'd' },
@@ -579,6 +585,7 @@ static void print_stats(char *name, stats *stats, char *(*fmt)(long double)) {
     printf("%8.2Lf%%\n", stats_within_stdev(stats, mean, stdev, 1));
 }
 
+//答应统计延时
 static void print_stats_latency(stats *stats) {
     long double percentiles[] = { 50.0, 75.0, 90.0, 99.0 };
     printf("  Latency Distribution\n");
